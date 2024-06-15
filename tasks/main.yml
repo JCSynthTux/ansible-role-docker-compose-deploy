@@ -3,7 +3,7 @@
   block:
     - name: Ensure directory for Docker Compose stacks exists
       ansible.builtin.file:
-        path: "/home/jchroback/{{ item.name }}"
+        path: "{{ ansible_env.HOME }}/{{ item.name }}"
         state: directory
         mode: '0755'
       with_items: "{{ docker_compose_stacks }}"
@@ -12,15 +12,15 @@
 
     - name: Copy Docker Compose files
       ansible.builtin.template:
-        src: "{{ item.src }}"
-        dest: "/home/jchroback/{{ item.name }}/docker-compose.yml"
+        src: "{{ playbook_dir }}/stacks/{{ item.name }}/docker-compose.yml.j2"
+        dest: "{{ ansible_env.HOME }}/{{ item.name }}/docker-compose.yml"
       with_items: "{{ docker_compose_stacks }}"
         #      loop_control:
         #        label: "{{ item.name }}"
 
     - name: Deploy Docker Compose stack
       community.docker.docker_compose:
-        project_src: "/home/jchroback/{{ item.name }}"
+        project_src: "{{ ansible_env.HOME }}/{{ item.name }}"
         files: "docker-compose.yml"
         state: present
       with_items: "{{ docker_compose_stacks }}"
