@@ -1,0 +1,7 @@
+galaxy_info:
+  author: Jan Chroback
+  description: Deploy multiple Docker Compose stacks.
+  license: MIT
+  min_ansible_version: 2.9
+
+dependencies: []

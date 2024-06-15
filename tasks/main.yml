@@ -1,0 +1,28 @@
+- name: Deploy Docker Compose stacks
+  when: docker_compose_stacks is defined and docker_compose_stacks | length > 0
+  block:
+    - name: Ensure directory for Docker Compose stacks exists
+      ansible.builtin.file:
+        path: "/home/jchroback/{{ item.name }}"
+        state: directory
+        mode: '0755'
+      with_items: "{{ docker_compose_stacks }}"
+        #      loop_control:
+        #        label: "{{ item.name }}"
+
+    - name: Copy Docker Compose files
+      ansible.builtin.template:
+        src: "{{ item.src }}"
+        dest: "/home/jchroback/{{ item.name }}/docker-compose.yml"
+      with_items: "{{ docker_compose_stacks }}"
+        #      loop_control:
+        #        label: "{{ item.name }}"
+
+    - name: Deploy Docker Compose stack
+      community.docker.docker_compose:
+        project_src: "/home/jchroback/{{ item.name }}"
+        files: "docker-compose.yml"
+        state: present
+      with_items: "{{ docker_compose_stacks }}"
+        #      loop_control:
+        #        label: "{{ item.name }}"
