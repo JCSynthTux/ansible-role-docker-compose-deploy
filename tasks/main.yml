@@ -3,7 +3,7 @@
   block:
     - name: Ensure directory for Docker Compose stacks exists
       ansible.builtin.file:
-        path: "{{ item.dest | default(user_dir + '/' + item.name) }}"
+        path: "{{ item.dest | default(env.HOME + '/' + item.name) }}"
         state: directory
         mode: '0755'
       with_items: "{{ docker_compose_stacks }}"
@@ -13,14 +13,14 @@
     - name: Copy Docker Compose files
       ansible.builtin.template:
         src: "{{ item.src | default(playbook_dir + '/stacks/' + item.name + '/docker-compose.yml.j2') }}"
-        dest: "{{ item.dest + '/docker-compose.yml' | default(user_dir + '/' + item.name + '/docker-compose.yml') }}" 
+        dest: "{{ item.dest + '/docker-compose.yml' | default(env.HOME + '/' + item.name + '/docker-compose.yml') }}" 
       with_items: "{{ docker_compose_stacks }}"
         #      loop_control:
         #        label: "{{ item.name }}"
 
     - name: Deploy Docker Compose stack
       community.docker.docker_compose:
-        project_src: "{{ item.dest | default(user_dir + '/' + item.name) }}"
+        project_src: "{{ item.dest | default(env.HOME + '/' + item.name) }}"
         files: "docker-compose.yml"
         state: present
       with_items: "{{ docker_compose_stacks }}"
