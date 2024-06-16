@@ -22,24 +22,17 @@
       register: non_template_files
       with_items: "{{ docker_compose_stacks }}"
 
-    - name: Set fact for found non-template files
-      ansible.builtin.set_fact:
-        found_files: "{{ non_template_files.results | selectattr('path', 'defined') | list }}"
-      when: non_template_files is defined and non_template_files.results | length > 0
-      with_items: "{{ docker_compose_stacks }}"
-      loop_control:
-        loop_var: item
-
     - name: Copy non-template files
       ansible.builtin.copy:
-        src: "{{ non_template_file.path }}"
-        dest: "{{ (item.dest | default(ansible_env.HOME + '/' + item.name)) + '/' + non_template_file.path | basename }}"
-      when: found_files | length > 0
+        src: "{{ file.path }}"
+        dest: "{{ (item.dest | default(ansible_env.HOME + '/' + item.name)) + '/' + file.path | basename }}"
       with_items: "{{ docker_compose_stacks }}"
-      with_nested:
-        - "{{ found_files }}"
+      when: item.non_template_files.results | length > 0
       loop_control:
-        loop_var: non_template_file
+        loop_var: item
+      vars:
+        files: "{{ item.non_template_files.results }}"
+      loop: "{{ docker_compose_stacks | map(attribute='non_template_files.results') | flatten(levels=1) }}"
 
     - name: Deploy Docker Compose stack
       community.docker.docker_compose:
