@@ -16,7 +16,7 @@
 
     - name: Copy source directory
       ansible.builtin.copy:
-        src: "{{ item.src | default(playbook_dir + '/stacks/' + item.name ) }}"
+        src: "{{ (item.src | default(playbook_dir + '/stacks/' + item.name )) + '/' }}"
         dest: "{{ item.dest | default(ansible_env.HOME + '/' + item.name) }}"
       with_items: "{{ docker_compose_stacks }}"
 
