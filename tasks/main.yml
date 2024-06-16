@@ -7,16 +7,29 @@
         state: directory
         mode: '0755'
       with_items: "{{ docker_compose_stacks }}"
-        #      loop_control:
-        #        label: "{{ item.name }}"
 
     - name: Copy Docker Compose files
       ansible.builtin.template:
         src: "{{ item.src | default(playbook_dir + '/stacks/' + item.name + '/docker-compose.yml.j2') }}"
         dest: "{{ (item.dest | default(ansible_env.HOME + '/' + item.name)) + '/docker-compose.yml' }}" 
       with_items: "{{ docker_compose_stacks }}"
-        #      loop_control:
-        #        label: "{{ item.name }}"
+
+    - name: Find non-template files in src directory
+      ansible.builtin.find:
+        paths: "{{ item.src | default(playbook_dir + '/stacks/' + item.name) }}"
+        recurse: yes
+        patterns: "!*.j2"
+      register: non_template_files
+      with_items: "{{ docker_compose_stacks }}"
+
+    - name: Copy non-template files
+      ansible.builtin.copy:
+        src: "{{ non_template_file.path }}"
+        dest: "{{ (item.dest | default(ansible_env.HOME + '/' + item.name)) + '/' + non_template_file.path | basename }}"
+      with_items: "{{ docker_compose_stacks }}"
+      with_items: "{{ non_template_files.results }}"
+      loop_control:
+        loop_var: non_template_file
 
     - name: Deploy Docker Compose stack
       community.docker.docker_compose:
@@ -24,5 +37,3 @@
         files: "docker-compose.yml"
         state: present
       with_items: "{{ docker_compose_stacks }}"
-        #      loop_control:
-        #        label: "{{ item.name }}"
