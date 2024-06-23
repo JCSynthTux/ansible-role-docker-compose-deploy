@@ -21,8 +21,10 @@
       with_items: "{{ docker_compose_stacks }}"
 
     - name: Deploy Docker Compose stack
-      community.docker.docker_compose:
+      community.docker.docker_compose_v2:
         project_src: "{{ item.dest | default(ansible_env.HOME + '/' + item.name) }}"
+        pull: "{{ item.pull | default('missing') }}"
         files: "docker-compose.yml"
+        remove_orphans: "{{ item.remove_orphans | default('true') }}"
         state: present
       with_items: "{{ docker_compose_stacks }}"
