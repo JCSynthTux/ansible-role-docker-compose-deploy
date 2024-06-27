@@ -11,13 +11,16 @@
     - name: Copy Docker Compose files
       ansible.builtin.template:
         src: "{{ (item.src | default(playbook_dir + '/stacks/' + item.name )) + '/docker-compose.yml.j2' }}"
-        dest: "{{ (item.dest | default(ansible_env.HOME + '/' + item.name)) + '/docker-compose.yml' }}" 
+        dest: "{{ (item.dest | default(ansible_env.HOME + '/' + item.name)) + '/docker-compose.yml' }}"
       with_items: "{{ docker_compose_stacks }}"
 
-    - name: Copy source directory
-      ansible.builtin.copy:
+    - name: Synchronize Configs
+      synchronize:
         src: "{{ (item.src | default(playbook_dir + '/stacks/' + item.name )) + '/' }}"
         dest: "{{ item.dest | default(ansible_env.HOME + '/' + item.name) }}"
+        rsync_opts:
+          - "--no-motd"
+          - "--exclude={{ item.exclude | default('*.j2') }}"
       with_items: "{{ docker_compose_stacks }}"
 
     - name: Deploy Docker Compose stack
